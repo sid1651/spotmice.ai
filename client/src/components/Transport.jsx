@@ -3,18 +3,13 @@ import * as Tone from "tone";
 
 const CELL = 20;
 
-/**
- * Converts grid Y → MIDI pitch
- * Top = high pitch, bottom = low pitch
- */
+
 const pitchFromY = (y) => {
   const maxMidi = 84; // C6
   return maxMidi - Math.floor(y / CELL);
 };
 
-/**
- * Converts grid X → time (beats)
- */
+
 const timeFromX = (x) => {
   return (x / CELL) * 0.25; // 16th note grid
 };
@@ -28,7 +23,7 @@ export default function Transport({ notes }) {
   useEffect(() => {
     synthRef.current = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "triangle" },
-      envelope: { attack: 0.01, release: 0.5 }
+      envelope: { attack: 0.01, release: 0.5 },
     }).toDestination();
 
     return () => {
@@ -48,8 +43,8 @@ export default function Transport({ notes }) {
 
     Tone.Transport.stop();
     Tone.Transport.cancel();
-
-    notes.forEach(note => {
+    Tone.Transport.start();
+    notes.forEach((note) => {
       Tone.Transport.schedule((time) => {
         synthRef.current.triggerAttackRelease(
           Tone.Frequency(pitchFromY(note.y), "midi"),
@@ -60,6 +55,7 @@ export default function Transport({ notes }) {
     });
 
     Tone.Transport.start("+0.1");
+    console.log("▶ Transport started");
     setIsPlaying(true);
   };
 
@@ -70,17 +66,15 @@ export default function Transport({ notes }) {
   };
 
   const exportMp3 = async () => {
-  const res = await fetch(
-    `http://localhost:5000/api/export/${roomId}/mp3`,
-    { method: "POST" }
-  );
-  const data = await res.json();
+    const res = await fetch(`http://localhost:5000/api/export/${roomId}/mp3`, {
+      method: "POST",
+    });
+    const data = await res.json();
 
-  if (data.url) {
-    window.open(`http://localhost:5000${data.url}`);
-  }
-};
-
+    if (data.url) {
+      window.open(`http://localhost:5000${data.url}`);
+    }
+  };
 
   return (
     <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -88,11 +82,7 @@ export default function Transport({ notes }) {
         ▶ Play
       </button>
 
-      <button onClick={stop}>
-        ⏹ Stop
-      </button>
-
-      <button onClick={exportMp3}>⬇ Export MP3</button>
+      <button onClick={stop}>⏹ Stop</button>
 
 
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

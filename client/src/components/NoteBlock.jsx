@@ -23,7 +23,7 @@ const handleDelete = (e) => {
 
   return (
     <Group>
-      {/* The Main Note Rect */}
+      
       <Rect
         x={note.x}
         y={note.y}
@@ -40,7 +40,7 @@ const handleDelete = (e) => {
         }}
       />
 
-      {/* ❌ THE CROSS BUTTON (Delete) */}
+     
       <Group 
         x={note.x + note.width - 15} 
         y={note.y + 2} 

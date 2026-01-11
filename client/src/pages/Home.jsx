@@ -16,7 +16,7 @@ export default function Home() {
       <div className="blob one"></div>
       <div className="blob two"></div>
       <div className="blob three"></div>
-      <h1>🎵 Collaborative MIDI Studio</h1>
+      <h1> Collaborative MIDI Studio</h1>
 
       <div className="card">
         <input

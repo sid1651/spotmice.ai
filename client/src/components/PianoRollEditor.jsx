@@ -1,10 +1,12 @@
 import { Stage, Layer } from "react-konva";
 import Grid from "./Grid";
 import NoteBlock from "./NoteBlock";
+import Timeline from "./Timeline";
+import Playhead from "./Playhead";
 
 const CELL = 20;
-const WIDTH = 800;
-const HEIGHT = 800;
+const WIDTH = 1700;
+const HEIGHT = 400;
 
 export default function PianoRollEditor({
   notes,
@@ -40,38 +42,36 @@ export default function PianoRollEditor({
   };
 
   return (
-    <Stage width={WIDTH} height={HEIGHT} onDblClick={addNote}>
-      <Layer>
-        <Grid width={WIDTH} height={HEIGHT} cellSize={CELL} />
-        {notes.map((note) => (
-          <NoteBlock
-            key={note.id} // Ensure this is unique (ai-id includes Date.now)
-            note={note}
-            projectId={projectId}
-            isOwner={note.source !== "ai"} // AI notes usually aren't draggable until accepted
-            userName={userName}
-            onUpdateNotes={(newNotesArrayOrFormula) => {
-      // 1. Update Local State
-      setNotes(prev => {
-        const next = typeof newNotesArrayOrFormula === 'function' 
-          ? newNotesArrayOrFormula(prev) 
-          : newNotesArrayOrFormula;
-        
-        // 2. 🔥 BROADCAST DELETION
-        socket.emit("notes-update", { projectId, notes: next });
-        return next;
-      });
-    }}
-            onChange={(updated) => {
-              const newNotes = notes.map((n) =>
-                n.id === updated.id ? updated : n
-              );
-              setNotes(newNotes);
-              socket.emit("midi-update", { projectId, event: updated });
-            }}
-          />
-        ))}
-      </Layer>
-    </Stage>
+    <div style={{ display: "flex", background: "#1e1e1e" }}>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <Timeline width={WIDTH} cell={CELL} />
+
+        <Stage width={WIDTH} height={HEIGHT} onDblClick={addNote}>
+          <Layer>
+            <Grid width={WIDTH} height={HEIGHT} cellSize={CELL} />
+            <Playhead height={HEIGHT} cellSize={CELL} />
+            {notes.map((note) => (
+              <NoteBlock
+                key={note.id}
+                note={note}
+                projectId={projectId}
+                isOwner={note.source !== "ai"}
+                userName={userName}
+                onChange={(updated) => {
+                  const newNotes = notes.map((n) =>
+                    n.id === updated.id ? updated : n
+                  );
+                  setNotes(newNotes);
+                  socket.emit("midi-update", {
+                    projectId,
+                    event: updated,
+                  });
+                }}
+              />
+            ))}
+          </Layer>
+        </Stage>
+      </div>
+    </div>
   );
 }

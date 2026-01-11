@@ -15,17 +15,17 @@ export default function Editor() {
 
   const [notes, setNotes] = useState([]);
 
-  // ✅ users is an ARRAY
+ 
   const { users, setEditing } = usePresence(roomId, userName, setNotes);
 
   return (
     <div className="editor">
-      {/* ✅ PASS USERS ARRAY */}
+      
       <CollaboratorSidebar users={users} />
 
       <div className="main">
         <div className="topbar">
-          <span>🎹 Room: {roomId}</span>
+          <span> Room: {roomId}</span>
           <Transport notes={notes}  />
         </div>
 

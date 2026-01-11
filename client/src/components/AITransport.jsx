@@ -1,32 +1,27 @@
 import React, { useState } from "react";
+import { exportToWav } from "../utils/exportAudio";
 
-/**
- * AITransport Component
- * Handles fetching harmonies from Gemini and managing the "Pending" state.
- */
+
+
 export default function AITransport({ notes, setNotes, socket, projectId }) {
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Safety check for props
+  
   if (typeof setNotes !== "function") {
     console.error("❌ AITransport Error: setNotes is not a function");
     return null;
   }
 
-  // 2. Identify pending AI notes for UI buttons
+  
   const pendingNotes = (notes || []).filter(
     (n) => n.source === "ai" && n.status === "pending"
   );
   const hasPendingAI = pendingNotes.length > 0;
 
-  /**
-   * REQUEST AI HARMONY
-   * Fetches data from the backend and maps it to the grid
-   */
+ 
   const requestAI = async () => {
     try {
       setIsLoading(true);
-      console.log("🪄 Requesting Harmony for notes:", notes);
 
       const res = await fetch("http://localhost:5000/api/ai/harmony", {
         method: "POST",
@@ -58,7 +53,7 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
 
         const newAINotes = data.harmonies
           .map((h) => {
-            // 🔥 CRITICAL: Match IDs using String conversion to avoid Number vs String bugs
+            
             const base = currentNotes.find(
               (n) => String(n.id) === String(h.baseNoteId)
             );
@@ -70,7 +65,7 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
               return null;
             }
 
-            // Calculate Y and Clamp it so it doesn't disappear off the top/bottom
+          
             let calculatedY = base.y - h.interval * SEMITONE;
             const clampedY = Math.max(
               0,
@@ -95,16 +90,13 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
         return [...currentNotes, ...newAINotes];
       });
     } catch (err) {
-      console.error("❌ AI Suggestion Failed:", err);
+      
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * ACCEPT AI SUGGESTIONS
-   * Converts pending notes into permanent notes
-   */
+  
   const acceptAI = () => {
     setNotes((prev) => {
       const updated = (prev || []).map((n) =>
@@ -113,7 +105,7 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
           : n
       );
 
-      // Sync with other users via socket
+     
       if (socket && projectId) {
         socket.emit("notes-update", { projectId, notes: updated });
       }
@@ -122,10 +114,7 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
     });
   };
 
-  /**
-   * REJECT AI SUGGESTIONS
-   * Removes all pending AI notes
-   */
+ 
   const rejectAI = () => {
     setNotes((prev) => {
       const filtered = (prev || []).filter(
@@ -151,7 +140,9 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
         alignItems: "center",
       }}
     >
-      {/* Primary Action Button */}
+            <button onClick={() => exportToWav(notes)}>⬇ Export WAV</button>
+
+      
       <button
         onClick={requestAI}
         disabled={isLoading || hasPendingAI}
@@ -166,7 +157,7 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
       >
         {isLoading ? "⌛ AI is Thinking..." : "🤖 AI Harmony"}
       </button>
-      {/* Decision Buttons - Only show when notes are pending */}
+      
       {hasPendingAI && (
         <div
           style={{
@@ -205,7 +196,7 @@ export default function AITransport({ notes, setNotes, socket, projectId }) {
           </button>
         </div>
       )}
-      {/* Manual Debug Button (Keep this until everything works!) */}
+     
       
       
     </div>
