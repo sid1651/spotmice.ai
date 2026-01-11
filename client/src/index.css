@@ -1,0 +1,473 @@
+/* --- Variables & Reset --- */
+:root {
+  --bg-dark: #050505;
+  --bg-panel: rgba(15, 15, 15, 0.75);
+  --accent-neon: #00e5ff;
+  --accent-purple: #d36bff;
+  --accent-green: #2ecc71;
+  --accent-red: #e74c3c;
+  --text-main: #e0e0e0;
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --sidebar-width: 260px;
+  --grid-size: 20px;
+  --grid-color: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  overflow: hidden;
+}
+
+/* --- Animated Blobs Background --- */
+.editor::before,
+.editor::after {
+  content: "";
+  position: fixed;
+  width: 40vw;
+  height: 40vw;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  opacity: 0.15;
+  animation: blobFloat 20s infinite alternate;
+}
+
+.editor::before {
+  background: var(--accent-neon);
+  top: -10%;
+  left: -10%;
+}
+
+.editor::after {
+  background: var(--accent-purple);
+  bottom: -10%;
+  right: -10%;
+  animation-delay: -5s;
+}
+
+@keyframes blobFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(100px, 50px) scale(1.2); }
+}
+
+/* --- Main Editor Layout --- */
+.editor {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: radial-gradient(circle at center, #111 0%, #050505 100%);
+  position: relative;
+}
+
+/* --- Collaborator Sidebar (Left) --- */
+.collaborator-sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.sidebar h3 {
+  color: #94a3b8;
+  margin-bottom: 12px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user {
+  background: rgba(2, 6, 23, 0.5);
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  transition: background 0.2s;
+}
+
+.user:hover {
+  background: rgba(2, 6, 23, 0.8);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.online { background: #22c55e; }
+.dot.editing { background: #facc15; }
+.dot.offline { background: #ef4444; }
+
+.name {
+  flex: 1;
+  font-size: 14px;
+}
+
+.edit {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* --- Main Content Area --- */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* --- Topbar --- */
+.topbar {
+  height: 50px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.topbar span {
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-neon);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+/* --- Buttons --- */
+button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* AI Buttons */
+button[onClick*="requestAI"] {
+  background: linear-gradient(135deg, #00e5ff 0%, #004dff 100%);
+  border: none;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+}
+
+button[onClick*="acceptAI"] {
+  background: var(--accent-green);
+  color: #000;
+}
+
+button[onClick*="rejectAI"] {
+  background: var(--accent-red);
+}
+
+/* --- Animated Grid Canvas (Center/Middle) --- */
+.canvas {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  position: relative;
+  background-image: 
+    /* Vertical grid lines */
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    /* Horizontal grid lines */
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  
+  /* Subtle grid animation */
+  background-position: 0 0;
+  animation: gridShift 20s linear infinite;
+}
+.sidebar{
+  height :10%;
+  width:40%;
+  border :2px solid var(--glass-border);
+  border-radius :8px;
+  padding :8px;
+
+}
+
+/* Add this to your CSS for the delete icon hover effect */
+.delete-icon-group {
+  transition: transform 0.2s ease;
+}
+
+.delete-icon-group:hover {
+  transform: scale(1.4);
+  filter: drop-shadow(0 0 5px #ff4757);
+}
+
+
+@keyframes gridShift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: calc(var(--grid-size) * -1) calc(var(--grid-size) * -1);
+  }
+}
+
+/* Custom scrollbar */
+.canvas::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.canvas::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 10px;
+}
+
+
+/* 🌌 Global reset */
+* {
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
+}
+
+/* 🌈 Background container */
+.home {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #1a1a40, #000);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  color: #fff;
+  padding: 20px;
+}
+
+/* 🎵 Title */
+.home h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-align: center;
+  z-index: 2;
+  letter-spacing: 0.5px;
+}
+
+/* 🧊 Glassmorphism card */
+.card {
+  width: 100%;
+  max-width: 380px;
+  padding: 30px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 2;
+  animation: fadeUp 0.9s ease forwards;
+}
+
+/* ✍️ Inputs */
+.card input {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.card input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.card input:focus {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 2px rgba(120, 120, 255, 0.6);
+}
+
+/* 🚀 Button */
+.card button {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6e8cff, #b983ff);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(140, 120, 255, 0.45);
+}
+
+.card button:active {
+  transform: scale(0.98);
+}
+
+/* 🌊 Floating blobs */
+.blob {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.6;
+  animation: float 12s infinite ease-in-out;
+}
+
+.blob.one {
+  background: #7f7cff;
+  top: -120px;
+  left: -120px;
+}
+
+.blob.two {
+  background: #ff7ad9;
+  bottom: -140px;
+  right: -140px;
+  animation-delay: 4s;
+}
+
+.blob.three {
+  background: #00ffd5;
+  bottom: 10%;
+  left: -180px;
+  animation-delay: 8s;
+}
+
+/* ✨ Animations */
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(40px, -30px) scale(1.1);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 📱 Responsive */
+@media (max-width: 480px) {
+  .home h1 {
+    font-size: 2rem;
+  }
+
+  .card {
+    padding: 22px;
+  }
+}
+
+
+/* --- Responsive Design --- */
+@media (max-width: 1024px) {
+  .collaborator-sidebar {
+    width: var(--sidebar-width);
+    /* Keep sidebar on left, but allow narrow screens to adjust */
+    min-width: 220px;
+  }
+  
+  .canvas {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editor {
+    flex-direction: column;
+  }
+  
+  .collaborator-sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem;
+  }
+  
+  .user {
+    min-width: 140px;
+  }
+  
+  .topbar {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    height: auto;
+  }
+  
+  .topbar span {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --sidebar-width: 100%;
+    --grid-size: 16px;
+  }
+  
+  .canvas {
+    padding: 8px;
+  }
+}
+
+/* --- Additional Animations --- */
+@keyframes pulseGlow {
+  0% { opacity: 0.6; box-shadow: 0 0 5px var(--accent-neon); }
+  100% { opacity: 1; box-shadow: 0 0 15px var(--accent-neon); }
+}
+
+.pending-ai-note {
+  animation: pulseGlow 1.5s infinite alternate ease-in-out;
+}
